@@ -19,7 +19,7 @@ type Caller interface {
 }
 
 // Caller 默认类型实现
-type call struct {
+type Call struct {
 	args   []interface{}
 	outs   [][]interface{}
 	failed bool
@@ -28,7 +28,7 @@ type call struct {
 
 // 返回 Call 实例接口对象
 func New() Caller {
-	c := new(call)
+	c := new(Call)
 	c.args = []interface{}{}
 	c.outs = [][]interface{}{}
 	return c
@@ -43,7 +43,7 @@ func New() Caller {
 //   strconv.ParseInt("3",10,64)
 // 执行后备用参数包含
 //   []interface{}{1,2,"more"}
-func (p *call) Call(i ...interface{}) Caller {
+func (p *Call) Call(i ...interface{}) Caller {
 	return p.call(false, i)
 }
 
@@ -56,11 +56,11 @@ func (p *call) Call(i ...interface{}) Caller {
 // 执行后备用参数包含
 //   []interface{}{1,2,int64(3),"more"}
 // 如果发生 panic , 忽略压入返回值
-func (p *call) Push(i ...interface{}) Caller {
+func (p *Call) Push(i ...interface{}) Caller {
 	return p.call(true, i)
 }
 
-func (p *call) call(push bool, is []interface{}) (caller Caller) {
+func (p *Call) call(push bool, is []interface{}) (caller Caller) {
 	defer func() {
 		if err := recover(); err != nil {
 			p.err = errors.New(fmt.Sprint(err))
@@ -152,7 +152,7 @@ func (p *call) call(push bool, is []interface{}) (caller Caller) {
 	}
 	return
 }
-func (p *call) setFailed(err error) {
+func (p *Call) setFailed(err error) {
 	if err == nil {
 		p.failed = true
 	} else {
@@ -166,7 +166,7 @@ func (p *call) setFailed(err error) {
 //   []interface{}
 // 默认返回最后一个
 // 参数如果是两个相等的数表示返回所有,否则表示返回一个切片
-func (p *call) Out(i ...int) [][]interface{} {
+func (p *Call) Out(i ...int) [][]interface{} {
 	l := len(p.outs)
 
 	s, e := 0, l
@@ -196,7 +196,7 @@ func (p *call) Out(i ...int) [][]interface{} {
 }
 
 // 以 bool 形式表示调用链过程中没有发生 panic/false/error
-func (p *call) Ok() bool {
+func (p *Call) Ok() bool {
 	return p.err == nil && !p.failed
 }
 
@@ -208,7 +208,7 @@ var NotEnough error = errors.New("call Not enough arguments")
 
 // 以 error 形式表示调用链过程中发生 panic/false/error
 
-func (p *call) Error() error {
+func (p *Call) Error() error {
 	if p.err != nil {
 		return p.err
 	}
