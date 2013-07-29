@@ -1,7 +1,6 @@
 package auto_test
 
 import (
-	"fmt"
 	. "github.com/gohub/typeless/auto"
 	"testing"
 )
@@ -12,27 +11,38 @@ func init() {
 
 func TestInt(T *testing.T) {
 	v, err := Conv.To(1, "10")
-	if err != nil || v.(int) != 10 {
-		T.Fail()
+	if err != nil {
+		T.Fatal(err)
 	}
+	want := 10
+	if v.(int) != want {
+		T.Errorf("want int %v but got &v", want, v)
+	}
+
 	v, err = Conv.To(int8(1), "10")
-	if err != nil || v.(int8) != 10 {
-		T.Fail()
+	if err != nil {
+		T.Fatal(err)
+	}
+	want = 10
+	if v.(int8) != int8(want) {
+		T.Errorf("want int8 %v but got &v", want, v)
 	}
 }
 
 func TestStringInt(T *testing.T) {
 	v, err := Conv.To(1, "10", "1")
-	if err != nil || v.(int) != 101 {
-		T.Fail()
+	if err != nil {
+		T.Fatal(err)
+	}
+	want := 101
+	if v.(int) != want {
+		T.Errorf("want int %v but got &v", want, v)
 	}
 }
 
 func TestError(T *testing.T) {
 	_, err := Conv.To(1, "a0", "1")
 	if err == nil {
-		T.Fail()
-	} else {
-		fmt.Println(err)
+		T.Error("want an error")
 	}
 }
