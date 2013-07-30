@@ -6,10 +6,11 @@ Chain arguments -- 论据链
 
 [http://www.fallacyfiles.org/glossary.html](http://www.fallacyfiles.org/glossary.html)
 
-`
+```
 Chain of arguments
-    A series of arguments linked by the conclusion of each being a premiss in the next, except for the final argument in the chain. 
-`
+    A series of arguments linked by the conclusion of each being a premiss in the next,
+    except for the final argument in the chain. 
+```
 
 Caller 借用此词进行命名. 伟大的机器翻译成 `论据链`
 
