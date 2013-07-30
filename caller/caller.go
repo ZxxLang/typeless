@@ -14,7 +14,8 @@ type Caller interface {
 	Call(...interface{}) Caller
 	Push(...interface{}) Caller
 	Ok() bool
-	Out(...int) [][]interface{}
+	Outs(...int) [][]interface{}
+	OutTo(...interface{}) error
 	Error() error
 }
 
@@ -98,7 +99,7 @@ func (p *Call) call(push bool, is []interface{}) (caller Caller) {
 
 		la = len(p.args)
 		if la < typ.NumIn() {
-			p.setFailed(NotEnough)
+			p.setFailed(NotEnoughArgs)
 			break
 		}
 		if !typ.IsVariadic() {
@@ -166,7 +167,7 @@ func (p *Call) setFailed(err error) {
 //   []interface{}
 // 默认返回最后一个
 // 参数如果是两个相等的数表示返回所有,否则表示返回一个切片
-func (p *Call) Out(i ...int) [][]interface{} {
+func (p *Call) Outs(i ...int) [][]interface{} {
 	l := len(p.outs)
 
 	s, e := 0, l
@@ -195,6 +196,29 @@ func (p *Call) Out(i ...int) [][]interface{} {
 	return p.outs[s:e]
 }
 
+// 把最后的输出
+func (p *Call) OutTo(vs ...interface{}) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
+	err = p.Error()
+	if err != nil {
+		return
+	}
+	l := len(p.outs)
+	if l == 0 || len(p.outs[l-1]) < len(vs) {
+		return NotEnoughOuts
+	}
+	// 类型必须完全匹配
+	outs := p.outs[l-1]
+	for i, v := range vs {
+		reflect.ValueOf(v).Elem().Set(reflect.ValueOf(outs[i]))
+	}
+	return nil
+}
+
 // 以 bool 形式表示调用链过程中没有发生 panic/false/error
 func (p *Call) Ok() bool {
 	return p.err == nil && !p.failed
@@ -203,11 +227,13 @@ func (p *Call) Ok() bool {
 // 表示如果调用链中产生的是 false
 var Failed error = errors.New("call Failed")
 
-// 表示参数数量不够
-var NotEnough error = errors.New("call Not enough arguments")
+// 表示不能匹配参数数量
+var NotEnoughArgs error = errors.New("call Not enough arguments")
+
+// 表示不能匹配输出数量
+var NotEnoughOuts error = errors.New("call Not enough values of out")
 
 // 以 error 形式表示调用链过程中发生 panic/false/error
-
 func (p *Call) Error() error {
 	if p.err != nil {
 		return p.err

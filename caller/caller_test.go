@@ -21,7 +21,7 @@ func TestFmtSprint(T *testing.T) {
 	if err != nil {
 		T.Fatal(err)
 	}
-	out := c.Out()
+	out := c.Outs()
 	if len(out) != 1 {
 		T.Fatalf("expected out length 1, but %v", len(out))
 	}
@@ -38,7 +38,7 @@ func TestPush(T *testing.T) {
 	if err != nil {
 		T.Fatal(err)
 	}
-	out := c.Out(0, 0)
+	out := c.Outs(0, 0)
 	if len(out) != 1 {
 		T.Fatalf("expected out length 1, but %v", len(out))
 	}
@@ -59,7 +59,7 @@ func TestArgsPush(T *testing.T) {
 	if err != nil {
 		T.Fatal(err)
 	}
-	out := c.Out(0, 0)
+	out := c.Outs(0, 0)
 	if len(out) != 1 {
 		T.Fatalf("expected out length 1, but %v", len(out))
 	}
@@ -80,7 +80,7 @@ func TestMore(T *testing.T) {
 	if err != nil {
 		T.Fatal(err)
 	}
-	out := c.Out(0, 0)
+	out := c.Outs(0, 0)
 	if len(out) != 2 {
 		T.Fatalf("expected out length 2, but %v", len(out))
 	}
@@ -92,4 +92,30 @@ func TestMore(T *testing.T) {
 	if out[1][0].(string) != "100,100" {
 		T.Errorf("want: %v\n got: %v", "100,100", out[1][0])
 	}
+}
+func TestChainArgs(T *testing.T) {
+	input := "123456789"
+	v := uint64(0)
+	err := New().
+		Push(
+		IsMinLen, input, 6,
+		strconv.ParseUint, input, 10, 64).
+		OutTo(&v)
+	if err != nil || v != 123456789 {
+		T.Fatalf("expected %v , but %v , error:", input, v, err)
+	}
+}
+
+func IsMinLen(s string, min int) bool {
+	min--
+	for i, _ := range s {
+		if i == min {
+			return true
+		}
+	}
+	return false
+}
+
+func IsRang(v, min, max uint64) bool {
+	return v >= min && v <= max
 }
